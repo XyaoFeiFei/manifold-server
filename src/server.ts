@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import http from 'node:http';
+import https from 'node:https';
 import socketIO from 'socket.io';
 import fs from 'fs';
 
@@ -19,10 +19,16 @@ const ratelimitMessages: Record<string, string> = {
   transferringHost: 'host_change_rate_limited',
 };
 
+// Load SSL/TLS certificate files
+const options = {
+  key: fs.readFileSync('path/to/your/server.key'), //! <- Change this
+  cert: fs.readFileSync('path/to/your/server.cert') //! <- Change this
+};
+
 export default class ManifoldServer {
   public config;
 
-  public server: http.Server;
+  public server: https.Server;
   public expressApp: express.Application;
   public io: socketIO.Server;
 
@@ -69,8 +75,8 @@ export default class ManifoldServer {
 
     // init http server and metadata endpoint
     this.expressApp = express();
-    this.server = http.createServer(this.expressApp);
-
+    this.server = https.createServer(options, this.expressApp); // Create HTTPS server
+    
     this.expressApp.use(
       cors({
         origin: 'https://bonk.io',
